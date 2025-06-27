@@ -7,14 +7,12 @@ type FormData = {
   edad: number;
   nivelEstudios: string;
   genero: string;
+  pais: string;
   horasRedesSociales: number;
   redSocialFavorita: string;
-  afectacionDesempeno: boolean;
   horasSueno: number;
-  estadoEmocional: number;
   relacionActual: string;
   conflictosRedes: boolean;
-  usoRedesSociales: number;
 };
 
 export default function EncuestaRedesSociales() {
@@ -26,10 +24,7 @@ export default function EncuestaRedesSociales() {
     setSubmitted(true);
   };
 
-  const afectacionDesempeno = watch('afectacionDesempeno');
   const conflictosRedes = watch('conflictosRedes');
-  const estadoEmocional = watch('estadoEmocional');
-  const usoRedesSociales = watch('usoRedesSociales');
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -105,10 +100,35 @@ export default function EncuestaRedesSociales() {
                 {errors.genero && <p className="mt-1 text-sm text-red-600">{errors.genero.message}</p>}
               </div>
 
-              {/* 4. Horas en redes sociales */}
+              {/* 4. País */}
+              <div>
+                <label htmlFor="pais" className="block text-sm font-medium text-gray-700">
+                  4. ¿De qué país eres?
+                </label>
+                <select
+                  id="pais"
+                  {...register('pais', { required: 'Este campo es obligatorio' })}
+                  className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                >
+                  <option value="">Selecciona una opción</option>
+                  <option value="México">México</option>
+                  <option value="Estados Unidos">Estados Unidos</option>
+                  <option value="Canadá">Canadá</option>
+                  <option value="Guatemala">Guatemala</option>
+                  <option value="Honduras">Honduras</option>
+                  <option value="El Salvador">El Salvador</option>
+                  <option value="Colombia">Colombia</option>
+                  <option value="Argentina">Argentina</option>
+                  <option value="Brasil">Brasil</option>
+                  <option value="España">España</option>
+                </select>
+                {errors.pais && <p className="mt-1 text-sm text-red-600">{errors.pais.message}</p>}
+              </div>
+
+              {/* 5. Horas en redes sociales */}
               <div>
                 <label htmlFor="horasRedesSociales" className="block text-sm font-medium text-gray-700">
-                  4. Selecciona el número de horas diarias que dedicas al uso de redes sociales
+                  5. Selecciona el número de horas diarias que dedicas al uso de redes sociales
                 </label>
                 <input
                   id="horasRedesSociales"
@@ -127,10 +147,10 @@ export default function EncuestaRedesSociales() {
                 {errors.horasRedesSociales && <p className="mt-1 text-sm text-red-600">{errors.horasRedesSociales.message}</p>}
               </div>
 
-              {/* 5. Red social favorita */}
+              {/* 6. Red social favorita */}
               <div>
                 <label htmlFor="redSocialFavorita" className="block text-sm font-medium text-gray-700">
-                  5. Selecciona la red social que más uses
+                  6. Selecciona la red social que más uses
                 </label>
                 <select
                   id="redSocialFavorita"
@@ -149,38 +169,6 @@ export default function EncuestaRedesSociales() {
                   <option value="Otra">Otra</option>
                 </select>
                 {errors.redSocialFavorita && <p className="mt-1 text-sm text-red-600">{errors.redSocialFavorita.message}</p>}
-              </div>
-
-              {/* 6. Afectación desempeño académico */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  6. ¿Consideras que las redes sociales han afectado tu desempeño académico?
-                </label>
-                <div className="mt-2 space-x-4">
-                  <label className="inline-flex items-center">
-                    <input
-                      type="radio"
-                      {...register('afectacionDesempeno', { required: 'Este campo es obligatorio' })}
-                      value="true"
-                      checked={afectacionDesempeno === true}
-                      onChange={() => setValue('afectacionDesempeno', true)}
-                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500"
-                    />
-                    <span className="ml-2 text-sm text-gray-700">Sí</span>
-                  </label>
-                  <label className="inline-flex items-center">
-                    <input
-                      type="radio"
-                      {...register('afectacionDesempeno')}
-                      value="false"
-                      checked={afectacionDesempeno === false}
-                      onChange={() => setValue('afectacionDesempeno', false)}
-                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500"
-                    />
-                    <span className="ml-2 text-sm text-gray-700">No</span>
-                  </label>
-                </div>
-                {errors.afectacionDesempeno && <p className="mt-1 text-sm text-red-600">{errors.afectacionDesempeno.message}</p>}
               </div>
 
               {/* 7. Horas de sueño */}
@@ -205,37 +193,10 @@ export default function EncuestaRedesSociales() {
                 {errors.horasSueno && <p className="mt-1 text-sm text-red-600">{errors.horasSueno.message}</p>}
               </div>
 
-              {/* 8. Estado emocional */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  8. Actualmente, ¿cómo te encuentras emocionalmente? (1 = Mal, 10 = Excelente)
-                </label>
-                <div className="mt-2 grid grid-cols-5 gap-2">
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                    <label key={num} className="inline-flex items-center">
-                      <input
-                        type="radio"
-                        {...register('estadoEmocional', { required: 'Este campo es obligatorio' })}
-                        value={num}
-                        checked={estadoEmocional === num}
-                        onChange={() => setValue('estadoEmocional', num)}
-                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500"
-                      />
-                      <span className="ml-1 text-sm text-gray-700">{num}</span>
-                    </label>
-                  ))}
-                </div>
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>Mal</span>
-                  <span>Excelente</span>
-                </div>
-                {errors.estadoEmocional && <p className="mt-1 text-sm text-red-600">{errors.estadoEmocional.message}</p>}
-              </div>
-
-              {/* 9. Relación actual */}
+              {/* 8. Relación actual */}
               <div>
                 <label htmlFor="relacionActual" className="block text-sm font-medium text-gray-700">
-                  9. Indica qué tipo de relación tienes actualmente
+                  8. Indica qué tipo de relación tienes actualmente
                 </label>
                 <select
                   id="relacionActual"
@@ -250,10 +211,10 @@ export default function EncuestaRedesSociales() {
                 {errors.relacionActual && <p className="mt-1 text-sm text-red-600">{errors.relacionActual.message}</p>}
               </div>
 
-              {/* 10. Conflictos por redes */}
+              {/* 9. Conflictos por redes */}
               <div>
                 <label className="block text-sm font-medium text-gray-700">
-                  10. ¿Has tenido conflictos con desconocidos, amigos o familiares debido a las redes sociales?
+                  9. ¿Has tenido conflictos con desconocidos, amigos o familiares debido a las redes sociales?
                 </label>
                 <div className="mt-2 space-x-4">
                   <label className="inline-flex items-center">
@@ -280,33 +241,6 @@ export default function EncuestaRedesSociales() {
                   </label>
                 </div>
                 {errors.conflictosRedes && <p className="mt-1 text-sm text-red-600">{errors.conflictosRedes.message}</p>}
-              </div>
-
-              {/* 11. Uso de redes sociales */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  11. En tu consideración, ¿qué tanto usas redes sociales? (1 = Poco, 10 = Demasiado)
-                </label>
-                <div className="mt-2 grid grid-cols-5 gap-2">
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                    <label key={num} className="inline-flex items-center">
-                      <input
-                        type="radio"
-                        {...register('usoRedesSociales', { required: 'Este campo es obligatorio' })}
-                        value={num}
-                        checked={usoRedesSociales === num}
-                        onChange={() => setValue('usoRedesSociales', num)}
-                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500"
-                      />
-                      <span className="ml-1 text-sm text-gray-700">{num}</span>
-                    </label>
-                  ))}
-                </div>
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>Poco</span>
-                  <span>Demasiado</span>
-                </div>
-                {errors.usoRedesSociales && <p className="mt-1 text-sm text-red-600">{errors.usoRedesSociales.message}</p>}
               </div>
 
               <div className="pt-4">
