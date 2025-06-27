@@ -82,7 +82,7 @@ export default function EncuestaRedesSociales() {
                       message: 'Solo se permiten números'
                     }
                   })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border text-black"
                 />
                 {errors.edad && <p className="mt-1 text-sm text-red-600">{errors.edad.message}</p>}
               </div>
@@ -95,7 +95,7 @@ export default function EncuestaRedesSociales() {
                 <select
                   id="nivelEstudios"
                   {...register('nivelEstudios', { required: 'Este campo es obligatorio' })}
-                  className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                  className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm text-black"
                 >
                   <option value="">Selecciona una opción</option>
                   <option value="TSU">TSU</option>
@@ -113,7 +113,7 @@ export default function EncuestaRedesSociales() {
                 <select
                   id="genero"
                   {...register('genero', { required: 'Este campo es obligatorio' })}
-                  className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                  className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm text-black"
                 >
                   <option value="">Selecciona una opción</option>
                   <option value="Masculino">Masculino</option>
@@ -130,7 +130,7 @@ export default function EncuestaRedesSociales() {
                 <select
                   id="pais"
                   {...register('pais', { required: 'Este campo es obligatorio' })}
-                  className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                  className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm text-black"
                 >
                   <option value="">Selecciona una opción</option>
                   <option value="México">México</option>
@@ -164,7 +164,7 @@ export default function EncuestaRedesSociales() {
                       message: 'Solo se permiten números'
                     }
                   })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border text-black"
                 />
                 {errors.horasRedesSociales && <p className="mt-1 text-sm text-red-600">{errors.horasRedesSociales.message}</p>}
               </div>
@@ -177,7 +177,7 @@ export default function EncuestaRedesSociales() {
                 <select
                   id="redSocialFavorita"
                   {...register('redSocialFavorita', { required: 'Este campo es obligatorio' })}
-                  className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                  className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm text-black"
                 >
                   <option value="">Selecciona una opción</option>
                   <option value="Facebook">Facebook</option>
@@ -210,7 +210,7 @@ export default function EncuestaRedesSociales() {
                       message: 'Solo se permiten números'
                     }
                   })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border text-black"
                 />
                 {errors.horasSueno && <p className="mt-1 text-sm text-red-600">{errors.horasSueno.message}</p>}
               </div>
@@ -223,7 +223,7 @@ export default function EncuestaRedesSociales() {
                 <select
                   id="relacionActual"
                   {...register('relacionActual', { required: 'Este campo es obligatorio' })}
-                  className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                  className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm text-black"
                 >
                   <option value="">Selecciona una opción</option>
                   <option value="Soltero">Soltero/a</option>

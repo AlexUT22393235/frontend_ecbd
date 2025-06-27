@@ -1,0 +1,12 @@
+# Configuración para Netlify
+[build]
+  # Comando para construir el sitio. Netlify lo ejecutará dentro del 'Base directory'.
+  command = "npm run build"
+  
+  # Directorio que Netlify debe publicar, relativo al 'Base directory'.
+  publish = ".next"
+
+# Plugin esencial para que Netlify entienda las características de Next.js.
+# Esto asegura que las API Routes, optimización de imágenes, etc., funcionen.
+[[plugins]]
+  package = "@netlify/plugin-nextjs" 
