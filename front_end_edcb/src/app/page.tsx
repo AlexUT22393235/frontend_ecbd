@@ -230,7 +230,7 @@ export default function EncuestaRedesSociales() {
                   className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm text-black"
                 >
                   <option value="">Selecciona una opción</option>
-                  <option value="Soltero">Soltero/a</option>
+                  <option value="Soltero/a">Soltero/a</option>
                   <option value="En una relación">En una relación</option>
                   <option value="Es complicado">Es complicado</option>
                 </select>
