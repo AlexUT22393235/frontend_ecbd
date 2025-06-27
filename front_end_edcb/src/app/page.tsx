@@ -30,9 +30,10 @@ export default function EncuestaRedesSociales() {
   }, []);
 
   const onSubmit = (data: FormData) => {
+    data.conflictosRedes = data.conflictosRedes ? true : false;
     axios.post('/api/form-data', data)
       .then(response => {
-        console.log(response.data);
+
         localStorage.setItem('formSubmitted', 'true');
         setSubmitted(true);
       })
@@ -77,6 +78,7 @@ export default function EncuestaRedesSociales() {
                   {...register('edad', {
                     required: 'Este campo es obligatorio',
                     min: { value: 17, message: 'Debes tener al menos 17 años' },
+                    setValueAs: v => parseInt(v, 10),
                     pattern: {
                       value: /^[0-9]+$/,
                       message: 'Solo se permiten números'
@@ -159,6 +161,7 @@ export default function EncuestaRedesSociales() {
                     required: 'Este campo es obligatorio',
                     min: { value: 0, message: 'El valor no puede ser negativo' },
                     max: { value: 24, message: 'No puede ser mayor a 24 horas' },
+                    setValueAs: v => parseInt(v, 10),
                     pattern: {
                       value: /^[0-9]+$/,
                       message: 'Solo se permiten números'
@@ -205,6 +208,7 @@ export default function EncuestaRedesSociales() {
                     required: 'Este campo es obligatorio',
                     min: { value: 1, message: 'Debe ser al menos 1 hora' },
                     max: { value: 14, message: 'No puede ser más de 14 horas' },
+                    setValueAs: v => parseInt(v, 10),
                     pattern: {
                       value: /^[0-9]+$/,
                       message: 'Solo se permiten números'
@@ -242,9 +246,9 @@ export default function EncuestaRedesSociales() {
                   <label className="inline-flex items-center">
                     <input
                       type="radio"
-                      {...register('conflictosRedes', { 
+                      {...register('conflictosRedes', {
                         required: 'Este campo es obligatorio',
-                        setValueAs: (v) => v === 'true'
+                        setValueAs: v => v === 'true'
                       })}
                       value="true"
                       className="h-4 w-4 text-indigo-600 focus:ring-indigo-500"
@@ -254,7 +258,7 @@ export default function EncuestaRedesSociales() {
                   <label className="inline-flex items-center">
                     <input
                       type="radio"
-                      {...register('conflictosRedes', { required: 'Este campo es obligatorio' })}
+                      {...register('conflictosRedes', { setValueAs: v => v === 'true' })}
                       value="false"
                       className="h-4 w-4 text-indigo-600 focus:ring-indigo-500"
                     />
