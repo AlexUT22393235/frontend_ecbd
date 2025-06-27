@@ -33,7 +33,7 @@ export default function EncuestaRedesSociales() {
     data.conflictosRedes = data.conflictosRedes ? true : false;
     axios.post('/api/form-data', data)
       .then(response => {
-
+        console.log(response.data);
         localStorage.setItem('formSubmitted', 'true');
         setSubmitted(true);
       })
