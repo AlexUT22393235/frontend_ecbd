@@ -79,19 +79,12 @@ export default function EncuestaRedesSociales() {
       //localStorage.setItem('formSubmitted', 'true');
       setSubmitted(true);
       
-      // Mapear relación actual a número para backend (1=Soltero, 2=En relación, 3=Otro)
-      const relacionMap: { [key: string]: number } = {
-        'Soltero/a': 1,
-        'En una relación': 2,
-        'Es complicado': 3,
-      };
-      const relacionCodigo = relacionMap[data.relacionActual] ?? 3;
 
       // Redirigir a la página de resultados con los parámetros necesarios
       const params = new URLSearchParams({
         horasUso: data.horasRedesSociales.toString(),
         horasSueno: data.horasSueno.toString(),
-        relacionActual: relacionCodigo.toString(),
+        relacionActual: data.relacionActual.toString(),
       });
       
       console.log('Parámetros de URL:', params.toString());
@@ -162,9 +155,9 @@ export default function EncuestaRedesSociales() {
                   className="mt-1 block w-full rounded-md border border-gray-600 bg-gray-900 py-2 px-3 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-cyan-500 sm:text-sm text-gray-100 placeholder-gray-500 transition-colors duration-200"
                 >
                   <option value="">Selecciona una opción</option>
-                  <option value="TSU">TSU</option>
                   <option value="Licenciatura">Licenciatura</option>
                   <option value="Maestría">Maestría</option>
+                  <option value="Maestría">Otro</option>
                 </select>
                 {errors.nivelEstudios && <p className="mt-1 text-sm text-red-400">{errors.nivelEstudios.message}</p>}
               </div>
@@ -210,28 +203,6 @@ export default function EncuestaRedesSociales() {
                     {errors.pais.message}
                   </p>
                 )}
-              </div>
-
-              {/* 3. Género */}
-              <div>
-                <label
-                  htmlFor="genero"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  3. Selecciona tu género
-                </label>
-                <select
-                  id="genero"
-                  {...register("genero", {
-                    required: "Este campo es obligatorio",
-                  })}
-                  className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
-                >
-                  <option value="">Selecciona una opción</option>
-                  <option value="Masculino">Masculino</option>
-                  <option value="Femenino">Femenino</option>
-                </select>
-                {errors.pais && <p className="mt-1 text-sm text-red-400">{errors.pais.message}</p>}
               </div>
 
               {/* 4. Horas en redes sociales */}

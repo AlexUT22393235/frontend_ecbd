@@ -56,14 +56,24 @@ export default function ResultadosPage() {
 
         const relacionNum = relacionMap[relacionActual || 'Soltero/a'] || 1;
 
-        console.log('Iniciando llamadas a la API...');
-        console.log('Parámetros:', { horasUso, horasSueno, relacionNum });
+        // Formatear las horas para que siempre tengan punto decimal si son enteras
+        const formatFloatString = (value: string): string => {
+          const num = parseFloat(value);
+          return Number.isInteger(num) ? num.toFixed(1) : num.toString();
+        };
+
+        const horasUsoFmt = formatFloatString(horasUso);
+        const horasSuenoFmt = formatFloatString(horasSueno);
 
         // Llamar a los endpoints de predicción usando la configuración
         const [adiccionRes, rendimientoRes, saludMentalRes] = await Promise.allSettled([
-          axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.ADICCION, horasUso, horasSueno)),
-          axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.RENDIMIENTO, horasUso, horasSueno)),
-          axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.SALUD_MENTAL, horasSueno, relacionNum.toString()))
+          axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.ADICCION, horasUsoFmt, horasSuenoFmt)),
+          axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.RENDIMIENTO, horasUsoFmt, horasSuenoFmt)),
+          axios.get(buildApiUrl(
+            API_CONFIG.ENDPOINTS.SALUD_MENTAL,
+            horasSuenoFmt,
+            relacionNum.toString()
+          ))
         ]);
 
         console.log('Respuestas de la API:');
