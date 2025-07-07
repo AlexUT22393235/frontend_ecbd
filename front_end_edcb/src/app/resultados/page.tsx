@@ -12,7 +12,7 @@ interface PredictionResult {
   probabilidad_afectacion?: number;
   salud_mental_score?: number;
   grafica_base64?: string;
-  grafica?: string; // Campo alternativo para gráficas
+  grafica?: string;
   valores_ingresados?: {
     horas_diarias_uso?: number;
     horas_sueño_nocturno?: number;
@@ -47,7 +47,6 @@ export default function ResultadosPage() {
           return;
         }
 
-        // Mapear relación actual a número
         const relacionMap: { [key: string]: number } = {
           'Soltero/a': 1,
           'En una relación': 2,
@@ -56,30 +55,11 @@ export default function ResultadosPage() {
 
         const relacionNum = relacionMap[relacionActual || 'Soltero/a'] || 1;
 
-        // Formatear las horas para que siempre tengan punto decimal si son enteras
-        const formatFloatString = (value: string): string => {
-          const num = parseFloat(value);
-          return Number.isInteger(num) ? num.toFixed(1) : num.toString();
-        };
-
-        const horasUsoFmt = formatFloatString(horasUso);
-        const horasSuenoFmt = formatFloatString(horasSueno);
-
-        // Llamar a los endpoints de predicción usando la configuración
         const [adiccionRes, rendimientoRes, saludMentalRes] = await Promise.allSettled([
-          axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.ADICCION, horasUsoFmt, horasSuenoFmt)),
-          axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.RENDIMIENTO, horasUsoFmt, horasSuenoFmt)),
-          axios.get(buildApiUrl(
-            API_CONFIG.ENDPOINTS.SALUD_MENTAL,
-            horasSuenoFmt,
-            relacionNum.toString()
-          ))
+          axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.ADICCION, horasUso, horasSueno)),
+          axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.RENDIMIENTO, horasUso, horasSueno)),
+          axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.SALUD_MENTAL, horasSueno, relacionNum.toString()))
         ]);
-
-        console.log('Respuestas de la API:');
-        console.log('Adicción:', adiccionRes);
-        console.log('Rendimiento:', rendimientoRes);
-        console.log('Salud Mental:', saludMentalRes);
 
         const newResults = {
           adiccion: adiccionRes.status === 'fulfilled' ? adiccionRes.value.data : null,
@@ -87,7 +67,6 @@ export default function ResultadosPage() {
           saludMental: saludMentalRes.status === 'fulfilled' ? saludMentalRes.value.data : null,
         };
 
-        console.log('Resultados procesados:', newResults);
         setResults(newResults);
       } catch (err) {
         console.error('Error en fetchResults:', err);
@@ -100,28 +79,26 @@ export default function ResultadosPage() {
     fetchResults();
   }, [searchParams]);
 
-  // Función helper para obtener la gráfica base64
   const getGraphBase64 = (result: PredictionResult | null): string | null => {
     if (!result) return null;
     const graphData = result.grafica_base64 || result.grafica || null;
     
     if (!graphData) return null;
     
-    // Si ya incluye el prefijo data:image/png;base64, devolverlo tal como está
     if (graphData.startsWith('data:image/png;base64,')) {
       return graphData;
     }
     
-    // Si no incluye el prefijo, agregarlo
     return `data:image/png;base64,${graphData}`;
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-cyan-500 mx-auto"></div>
-          <p className="mt-4 text-gray-300">Analizando tus datos...</p>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-cyan-500 mx-auto"></div>
+          <p className="text-gray-300 text-lg font-medium">Analizando tus datos...</p>
+          <p className="text-gray-500 text-sm">Esto puede tomar unos momentos</p>
         </div>
       </div>
     );
@@ -129,16 +106,16 @@ export default function ResultadosPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900">
-        <div className="text-center max-w-md mx-auto p-6 bg-gray-800 rounded-2xl shadow-2xl border border-gray-700">
-          <div className="text-red-400 text-6xl mb-4">⚠️</div>
-          <h1 className="text-2xl font-bold text-gray-100 mb-2">Error de Conexión</h1>
-          <p className="text-gray-300 mb-4">{error}</p>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800">
+        <div className="text-center max-w-md mx-auto p-8 bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-700/50">
+          <div className="text-red-400 text-5xl mb-4">⚠️</div>
+          <h1 className="text-2xl font-bold text-gray-100 mb-3">Error de Conexión</h1>
+          <p className="text-gray-300 mb-6">{error}</p>
           <button 
             onClick={() => window.history.back()}
-            className="px-4 py-2 bg-cyan-600 text-white rounded hover:bg-cyan-500 transition-colors duration-200"
+            className="px-6 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg transition-all duration-300 transform hover:scale-105"
           >
-            Volver
+            Volver a intentar
           </button>
         </div>
       </div>
@@ -146,176 +123,273 @@ export default function ResultadosPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold text-center text-gray-100 mb-8 tracking-tight">
-          Resultados del Análisis
-        </h1>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 mb-4">
+            Resultados del Análisis
+          </h1>
+          <p className="text-gray-400">
+            Basado en tus hábitos de uso de redes sociales, horas de sueño y estado de relación
+          </p>
+        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Predicción de Adicción */}
-          <div className="bg-gray-800 rounded-2xl shadow-2xl p-6 border border-gray-700">
-            <h2 className="text-xl font-semibold text-gray-100 mb-4 flex items-center">
-              <span className="text-2xl mr-2"></span>
-              Predicción de Adicción
-            </h2>
+        {/* Main Results - Vertical Layout */}
+        <div className="space-y-8 mb-12">
+          {/* Adicción Section */}
+          <div className="bg-gray-800/60 backdrop-blur-sm rounded-xl shadow-xl p-6 border border-gray-700/50">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-gray-100 flex items-center">
+                <span className="w-3 h-3 bg-cyan-500 rounded-full mr-2"></span>
+                Predicción de Adicción
+              </h2>
+              <span className="px-2 py-1 text-xs bg-gray-700 rounded-full text-gray-300">
+                Redes Sociales
+              </span>
+            </div>
+            
             {results.adiccion ? (
-              <div>
-                <div className="text-center mb-4">
-                  <div className="text-4xl font-bold text-cyan-400 mb-2">
-                    {results.adiccion.prediccion_porcentaje?.toFixed(1)}%
+              <div className="space-y-6">
+                <div className="flex flex-col md:flex-row md:items-center gap-6">
+                  <div className="text-center md:text-left">
+                    <div className="text-5xl font-bold text-cyan-400 mb-2">
+                      {results.adiccion.prediccion_porcentaje?.toFixed(1)}%
+                    </div>
+                    <div className="text-lg font-medium text-gray-300 capitalize">
+                      {results.adiccion.nivel_adiccion?.toLowerCase()}
+                    </div>
+                    <div className="w-full bg-gray-700 rounded-full h-2.5 mt-4 max-w-xs mx-auto md:mx-0">
+                      <div 
+                        className="bg-gradient-to-r from-cyan-500 to-blue-600 h-2.5 rounded-full" 
+                        style={{ width: `${results.adiccion.prediccion_porcentaje}%` }}
+                      ></div>
+                    </div>
                   </div>
-                  <div className="text-lg font-medium text-gray-300">
-                    {results.adiccion.nivel_adiccion}
+                  
+                  <div className="flex-1">
+                    <p className="text-gray-400">{results.adiccion.mensaje}</p>
+                    {results.adiccion.valores_ingresados && (
+                      <div className="grid grid-cols-2 gap-2 text-xs mt-4">
+                        <div className="bg-gray-900/50 p-2 rounded-lg">
+                          <div className="text-gray-500">Horas de uso</div>
+                          <div className="text-gray-300 font-medium">
+                            {results.adiccion.valores_ingresados.horas_diarias_uso}h
+                          </div>
+                        </div>
+                        <div className="bg-gray-900/50 p-2 rounded-lg">
+                          <div className="text-gray-500">Horas de sueño</div>
+                          <div className="text-gray-300 font-medium">
+                            {results.adiccion.valores_ingresados.horas_sueño_nocturno}h
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
-                <p className="text-gray-400 text-sm">{results.adiccion.mensaje}</p>
-                {results.adiccion.valores_ingresados && (
-                  <div className="mt-4 p-3 bg-gray-900 rounded-lg border border-gray-700">
-                    <p className="text-xs text-gray-500">
-                      Horas de uso: {results.adiccion.valores_ingresados.horas_diarias_uso}h
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      Horas de sueño: {results.adiccion.valores_ingresados.horas_sueño_nocturno}h
-                    </p>
-                  </div>
-                )}
-                {/* Mostrar gráfica si existe */}
+                
                 {getGraphBase64(results.adiccion) && (
-                  <div className="mt-4">
+                  <div className="mt-6">
+                    <h3 className="text-gray-300 font-medium mb-3">Visualización de datos</h3>
                     <img 
                       src={getGraphBase64(results.adiccion)!}
                       alt="Gráfica de adicción"
-                      className="w-full h-auto rounded-lg border border-gray-700"
+                      className="w-full h-80 object-contain rounded-lg"
                     />
                   </div>
                 )}
               </div>
             ) : (
-              <div className="text-center py-8">
-                <div className="text-gray-600 text-4xl mb-2"></div>
-                <p className="text-gray-500">Servicio no disponible</p>
+              <div className="text-center py-8 text-gray-600">
+                Servicio no disponible
               </div>
             )}
           </div>
 
-          {/* Predicción de Rendimiento Académico */}
-          <div className="bg-gray-800 rounded-2xl shadow-2xl p-6 border border-gray-700">
-            <h2 className="text-xl font-semibold text-gray-100 mb-4 flex items-center">
-              <span className="text-2xl mr-2"></span>
-              Rendimiento Académico
-            </h2>
+          {/* Rendimiento Section */}
+          <div className="bg-gray-800/60 backdrop-blur-sm rounded-xl shadow-xl p-6 border border-gray-700/50">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-gray-100 flex items-center">
+                <span className="w-3 h-3 bg-purple-500 rounded-full mr-2"></span>
+                Rendimiento Académico
+              </h2>
+              <span className="px-2 py-1 text-xs bg-gray-700 rounded-full text-gray-300">
+                Impacto
+              </span>
+            </div>
+            
             {results.rendimiento ? (
-              <div>
-                <div className="text-center mb-4">
-                  <div className={`text-4xl font-bold ${
-                    results.rendimiento.prediccion_booleana ? 'text-red-400' : 'text-green-400'
-                  }`}>
-                    {results.rendimiento.prediccion_booleana ? '⚠️' : '✅'}
+              <div className="space-y-6">
+                <div className="flex flex-col md:flex-row md:items-center gap-6">
+                  <div className="text-center md:text-left">
+                    <div className={`text-5xl font-bold mb-2 ${
+                      results.rendimiento.prediccion_booleana ? 'text-red-400' : 'text-green-400'
+                    }`}>
+                      {results.rendimiento.prediccion_booleana ? '⚠️' : '✅'}
+                    </div>
+                    <div className="text-lg font-medium text-gray-300">
+                      {results.rendimiento.prediccion_booleana ? 'Afectado' : 'No Afectado'}
+                    </div>
+                    <div className="text-sm text-gray-400 mt-2">
+                      {results.rendimiento.probabilidad_afectacion ? 
+                        (results.rendimiento.probabilidad_afectacion * 100).toFixed(1) : '0.0'}% probabilidad
+                    </div>
                   </div>
-                  <div className="text-lg font-medium text-gray-300">
-                    {results.rendimiento.prediccion_booleana ? 'Afectado' : 'No Afectado'}
-                  </div>
-                  <div className="text-sm text-gray-400">
-                    {results.rendimiento.probabilidad_afectacion ? (results.rendimiento.probabilidad_afectacion * 100).toFixed(1) : '0.0'}% probabilidad
+                  
+                  <div className="flex-1">
+                    <p className="text-gray-400">{results.rendimiento.mensaje}</p>
                   </div>
                 </div>
-                <p className="text-gray-400 text-sm">{results.rendimiento.mensaje}</p>
-                {/* Mostrar gráfica si existe */}
+                
                 {getGraphBase64(results.rendimiento) && (
-                  <div className="mt-4">
+                  <div className="mt-6">
+                    <h3 className="text-gray-300 font-medium mb-3">Visualización de datos</h3>
                     <img 
                       src={getGraphBase64(results.rendimiento)!}
                       alt="Gráfica de rendimiento académico"
-                      className="w-full h-auto rounded-lg border border-gray-700"
+                      className="w-full h-80 object-contain rounded-lg"
                     />
                   </div>
                 )}
               </div>
             ) : (
-              <div className="text-center py-8">
-                <div className="text-gray-600 text-4xl mb-2"></div>
-                <p className="text-gray-500">Servicio no disponible</p>
+              <div className="text-center py-8 text-gray-600">
+                Servicio no disponible
               </div>
             )}
           </div>
 
-          {/* Predicción de Salud Mental */}
-          <div className="bg-gray-800 rounded-2xl shadow-2xl p-6 border border-gray-700">
-            <h2 className="text-xl font-semibold text-gray-100 mb-4 flex items-center">
-              <span className="text-2xl mr-2"></span>
-              Salud Mental
-            </h2>
+          {/* Salud Mental Section */}
+          <div className="bg-gray-800/60 backdrop-blur-sm rounded-xl shadow-xl p-6 border border-gray-700/50">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-gray-100 flex items-center">
+                <span className="w-3 h-3 bg-blue-500 rounded-full mr-2"></span>
+                Salud Mental
+              </h2>
+              <span className="px-2 py-1 text-xs bg-gray-700 rounded-full text-gray-300">
+                Bienestar
+              </span>
+            </div>
+            
             {results.saludMental ? (
-              <div>
-                <div className="text-center mb-4">
-                  <div className="text-4xl font-bold text-blue-400 mb-2">
-                    {results.saludMental.salud_mental_score}/10
+              <div className="space-y-6">
+                <div className="flex flex-col md:flex-row md:items-center gap-6">
+                  <div className="text-center md:text-left">
+                    <div className="text-5xl font-bold text-blue-400 mb-2">
+                      {results.saludMental.salud_mental_score}/10
+                    </div>
+                    <div className="text-lg font-medium text-gray-300">
+                      {results.saludMental.salud_mental_score && results.saludMental.salud_mental_score < 4 ? 'Baja' :
+                       results.saludMental.salud_mental_score && results.saludMental.salud_mental_score < 7 ? 'Promedio' : 'Positiva'}
+                    </div>
+                    <div className="w-full bg-gray-700 rounded-full h-2.5 mt-4 max-w-xs mx-auto md:mx-0">
+                      <div 
+                        className="bg-gradient-to-r from-blue-500 to-indigo-600 h-2.5 rounded-full" 
+                        style={{ width: `${(results.saludMental.salud_mental_score || 0) * 10}%` }}
+                      ></div>
+                    </div>
                   </div>
-                  <div className="text-lg font-medium text-gray-300">
-                    {results.saludMental.salud_mental_score && results.saludMental.salud_mental_score < 4 ? 'Baja' :
-                     results.saludMental.salud_mental_score && results.saludMental.salud_mental_score < 7 ? 'Promedio' : 'Positiva'}
+                  
+                  <div className="flex-1">
+                    <p className="text-gray-400">{results.saludMental.mensaje}</p>
                   </div>
                 </div>
-                <p className="text-gray-400 text-sm">{results.saludMental.mensaje}</p>
-                {/* Mostrar gráfica si existe */}
+                
                 {getGraphBase64(results.saludMental) && (
-                  <div className="mt-4">
+                  <div className="mt-6">
+                    <h3 className="text-gray-300 font-medium mb-3">Visualización de datos</h3>
                     <img 
                       src={getGraphBase64(results.saludMental)!}
                       alt="Gráfica de salud mental"
-                      className="w-full h-auto rounded-lg border border-gray-700"
+                      className="w-full h-80 object-contain rounded-lg"
                     />
                   </div>
                 )}
               </div>
             ) : (
-              <div className="text-center py-8">
-                <div className="text-gray-600 text-4xl mb-2"></div>
-                <p className="text-gray-500">Servicio no disponible</p>
+              <div className="text-center py-8 text-gray-600">
+                Servicio no disponible
               </div>
             )}
           </div>
         </div>
 
-        {/* Recomendaciones */}
-        <div className="mt-12 bg-gray-800 rounded-2xl shadow-2xl p-6 border border-gray-700">
-          <h2 className="text-2xl font-semibold text-gray-100 mb-6 flex items-center">
-            <span className="text-2xl mr-2"></span>
+        {/* Recomendaciones Section */}
+        <div className="bg-gray-800/60 backdrop-blur-sm rounded-xl shadow-xl p-8 border border-gray-700/50 mb-12">
+          <h2 className="text-2xl font-bold text-gray-100 mb-6 flex items-center">
+            <svg className="w-6 h-6 text-cyan-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
             Recomendaciones Personalizadas
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h3 className="text-lg font-medium text-gray-300 mb-3">Para Reducir el Uso de Redes Sociales:</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li>• Establece límites de tiempo diario</li>
-                <li>• Desactiva las notificaciones</li>
-                <li>• Usa aplicaciones de control parental</li>
-                <li>• Busca actividades alternativas</li>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="bg-gray-900/30 p-6 rounded-lg border border-gray-700/50">
+              <h3 className="text-lg font-semibold text-gray-300 mb-4 flex items-center">
+                <svg className="w-5 h-5 text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Para Reducir el Uso de Redes
+              </h3>
+              <ul className="space-y-3">
+                <li className="flex items-start">
+                  <span className="text-cyan-400 mr-2">•</span>
+                  <span className="text-gray-400">Establece límites de tiempo diario</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-cyan-400 mr-2">•</span>
+                  <span className="text-gray-400">Desactiva notificaciones no esenciales</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-cyan-400 mr-2">•</span>
+                  <span className="text-gray-400">Crea zonas libres de teléfono</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-cyan-400 mr-2">•</span>
+                  <span className="text-gray-400">Reemplaza el hábito con actividades alternativas</span>
+                </li>
               </ul>
             </div>
-            <div>
-              <h3 className="text-lg font-medium text-gray-300 mb-3">Para Mejorar el Sueño:</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li>• Evita pantallas 1 hora antes de dormir</li>
-                <li>• Mantén un horario regular</li>
-                <li>• Crea una rutina relajante</li>
-                <li>• Asegura un ambiente cómodo</li>
+            
+            <div className="bg-gray-900/30 p-6 rounded-lg border border-gray-700/50">
+              <h3 className="text-lg font-semibold text-gray-300 mb-4 flex items-center">
+                <svg className="w-5 h-5 text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                </svg>
+                Para Mejorar el Sueño y Bienestar
+              </h3>
+              <ul className="space-y-3">
+                <li className="flex items-start">
+                  <span className="text-blue-400 mr-2">•</span>
+                  <span className="text-gray-400">Evita pantallas 1-2 horas antes de dormir</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-blue-400 mr-2">•</span>
+                  <span className="text-gray-400">Mantén un horario regular de sueño</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-blue-400 mr-2">•</span>
+                  <span className="text-gray-400">Practica técnicas de relajación</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-blue-400 mr-2">•</span>
+                  <span className="text-gray-400">Considera terapia si persisten problemas</span>
+                </li>
               </ul>
             </div>
           </div>
         </div>
 
-        {/* Botón para volver */}
-        <div className="mt-12 flex justify-center">
+        {/* Action Buttons */}
+        <div className="flex flex-col sm:flex-row justify-center gap-4">
           <button
             onClick={() => window.location.href = '/'}
-            className="px-6 py-2 bg-cyan-600 text-white rounded-lg shadow hover:bg-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-colors duration-200"
+            className="px-6 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-gray-900"
           >
-            Volver al formulario
+            Volver al Formulario
           </button>
         </div>
       </div>
     </div>
   );
-} 
+}
