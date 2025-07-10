@@ -41,45 +41,112 @@ export default function ResultadosPage() {
     adiccion: PredictionResult | null;
     rendimiento: PredictionResult | null;
     saludMental: PredictionResult | null;
+    sleepQuality: any | null;
+    highAddiction: any | null;
+    conflictRisk: any | null;
+    screenTime: any | null;
+    socialWellbeing: any | null;
+    studyEfficiency: any | null;
   }>({
     adiccion: null,
     rendimiento: null,
     saludMental: null,
+    sleepQuality: null,
+    highAddiction: null,
+    conflictRisk: null,
+    screenTime: null,
+    socialWellbeing: null,
+    studyEfficiency: null,
   });
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchResults = async () => {
       try {
-        const horasUso = searchParams.get('horasUso');
-        const horasSueno = searchParams.get('horasSueno');
-        const relacionActual = searchParams.get('relacionActual');
+        const getParam = (clave: string) => searchParams.get(clave) ?? searchParams.get(clave.toLowerCase());
 
-        if (!horasUso || !horasSueno) {
+        const horasUso = getParam('HorasUso');
+        const horasSueno = getParam('HorasSueno');
+        const relacionInt = getParam('RelacionInt');
+        const edad = getParam('Edad');
+        const estadoEmocional = getParam('EstadoEmocional');
+        const usoRedesSociales = getParam('UsoRedesSociales');
+        const plataforma = getParam('Plataforma');
+        const afectacion = getParam('AfectacionDesempeno');
+
+        if (!horasUso || !horasSueno || !edad || !relacionInt || !usoRedesSociales || !plataforma || !afectacion) {
           setError('Faltan parámetros requeridos');
           setLoading(false);
           return;
         }
 
-        const relacionMap: { [key: string]: number } = {
-          'Soltero/a': 1,
-          'En una relación': 2,
-          'Es complicado': 3,
+        // Valores ya convertidos en el formulario, solo aseguramos fallback
+        const relacionNum = relacionInt || '1';
+
+
+        // Formatear las horas para que siempre tengan punto decimal si son enteras
+
+
+        const formatFloatString = (value: string): string => {
+          const num = parseFloat(value);
+          return Number.isInteger(num) ? num.toFixed(1) : num.toString();
         };
 
-        const relacionNum = relacionMap[relacionActual || 'Soltero/a'] || 1;
-
+        const horasUsoFmt = formatFloatString(horasUso);
+        const horasSuenoFmt = formatFloatString(horasSueno);
+        
         const [adiccionRes, rendimientoRes, saludMentalRes] = await Promise.allSettled([
-          axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.ADICCION, horasUso, horasSueno)),
-          axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.RENDIMIENTO, horasUso, horasSueno)),
-          axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.SALUD_MENTAL, horasSueno, relacionNum.toString()))
+          axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.ADICCION, horasUsoFmt, horasSuenoFmt)),
+          axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.RENDIMIENTO, horasUsoFmt, horasSuenoFmt)),
+          axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.SALUD_MENTAL, horasSuenoFmt, relacionNum.toString()))
+        ]);
+
+        // Extraer datos de las respuestas para calcular las nuevas constantes
+        const AdiccionData = adiccionRes.status === 'fulfilled' ? adiccionRes.value.data : null;
+        const RendimientoData = rendimientoRes.status === 'fulfilled' ? rendimientoRes.value.data : null;
+        const SaludMentalData = saludMentalRes.status === 'fulfilled' ? saludMentalRes.value.data : null;
+
+        // Constantes derivadas (PascalCase)
+        const UsoRedesSociales = AdiccionData
+          ? Math.round((AdiccionData.prediccion_porcentaje ?? 50) / 10) // Escala 0-10
+          : parseInt(usoRedesSociales || '5');
+
+        const EstadoEmocional = SaludMentalData
+          ? Math.round(SaludMentalData.salud_mental_score ?? 5)
+          : parseInt(estadoEmocional || '5');
+
+        const Afectacion = (() => {
+          if (RendimientoData) {
+            if (typeof RendimientoData.prediccion_booleana === 'boolean') {
+              return RendimientoData.prediccion_booleana ? 1 : 0;
+            }
+            if (typeof RendimientoData.prediccion === 'string') {
+              return RendimientoData.prediccion === 'Sí' ? 1 : 0;
+            }
+          }
+          return parseInt(afectacion || '0');
+        })();
+
+        // Llamadas a los nuevos endpoints usando las constantes calculadas
+        const [sleepRes, conflictRes, screenTimeRes, studyEffRes] = await Promise.allSettled([
+          axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.SLEEP_QUALITY, horasSuenoFmt, EstadoEmocional.toString(), UsoRedesSociales.toString())),
+          axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.CONFLICT_RISK, UsoRedesSociales.toString(), horasUsoFmt, relacionNum, plataforma || '1')),
+          axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.RECOMMENDED_SCREEN_TIME, edad, UsoRedesSociales.toString(), EstadoEmocional.toString())),
+          //axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.SOCIAL_WELLBEING, relacionNum, EstadoEmocional.toString(), plataforma || '1', UsoRedesSociales.toString())),
+          axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.STUDY_EFFICIENCY, Afectacion.toString(), horasUsoFmt, horasSuenoFmt))
         ]);
 
         const newResults = {
           adiccion: adiccionRes.status === 'fulfilled' ? adiccionRes.value.data : null,
           rendimiento: rendimientoRes.status === 'fulfilled' ? rendimientoRes.value.data : null,
           saludMental: saludMentalRes.status === 'fulfilled' ? saludMentalRes.value.data : null,
-        };
+          sleepQuality: sleepRes.status === 'fulfilled' ? sleepRes.value.data : null,
+          conflictRisk: conflictRes.status === 'fulfilled' ? conflictRes.value.data : null,
+          screenTime: screenTimeRes.status === 'fulfilled' ? screenTimeRes.value.data : null,
+           //socialWellbeing: socialWellRes.status === 'fulfilled' ? socialWellRes.value.data : null,
+          studyEfficiency: studyEffRes.status === 'fulfilled' ? studyEffRes.value.data : null,
+          highAddiction: null,
+        };          
 
         setResults(newResults);
       } catch (err) {
@@ -373,6 +440,178 @@ export default function ResultadosPage() {
                     />
                   </div>
                 )}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-600">
+                Servicio no disponible
+              </div>
+            )}
+          </div>
+
+          {/* Calidad de Sueño Section */}
+          <div className="bg-gray-800/60 backdrop-blur-sm rounded-xl shadow-xl p-6 border border-gray-700/50">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-gray-100 flex items-center">
+                <span className="w-3 h-3 bg-teal-500 rounded-full mr-2"></span>
+                Calidad de Sueño
+              </h2>
+              <span className="px-2 py-1 text-xs bg-gray-700 rounded-full text-gray-300">
+                Bienestar
+              </span>
+            </div>
+
+            {results.sleepQuality ? (
+              <div className="space-y-6 text-center">
+                <div
+                  className={`text-5xl font-bold ${
+                    results.sleepQuality?.Categoria === 'Buena' ? 'text-green-400' : 'text-red-400'
+                  }`}
+                >
+                  {results.sleepQuality?.Categoria}
+                </div>
+                {results.sleepQuality?.Grafica && (
+                  <img
+                    src={results.sleepQuality.Grafica}
+                    alt="Gráfica calidad de sueño"
+                    className="w-full h-80 object-contain rounded-lg"
+                  />
+                )}
+                <p className="text-gray-400 text-sm max-w-md mx-auto">
+                  {results.sleepQuality?.Categoria === 'Buena'
+                    ? 'Tu calidad de sueño es adecuada. Mantén horarios regulares y un ambiente silencioso para dormir.'
+                    : 'La calidad de tu sueño podría mejorar. Intenta limitar pantallas antes de dormir y establecer rutinas relajantes.'}
+                </p>
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-600">
+                Servicio no disponible
+              </div>
+            )}
+          </div>
+
+          {/* Riesgo de Conflictos Section */}
+          <div className="bg-gray-800/60 backdrop-blur-sm rounded-xl shadow-xl p-6 border border-gray-700/50">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-gray-100 flex items-center">
+                <span className="w-3 h-3 bg-yellow-400 rounded-full mr-2"></span>
+                Riesgo de Conflictos
+              </h2>
+              <span className="px-2 py-1 text-xs bg-gray-700 rounded-full text-gray-300">
+                Social
+              </span>
+            </div>
+
+            {results.conflictRisk ? (
+              <div className="space-y-6 text-center">
+                <div
+                  className={`text-5xl font-bold ${
+                    results.conflictRisk?.RiesgoAlto ? 'text-yellow-400' : 'text-green-400'
+                  }`}
+                >
+                  {results.conflictRisk?.RiesgoAlto ? '⚠️' : '✅'}
+                </div>
+                <div className="text-lg font-medium text-gray-300">
+                  {((results.conflictRisk?.Probabilidad || 0) * 100).toFixed(1)}% probabilidad
+                                  {/* Explicación de la CDF */}
+                <p className="text-gray-400 text-sm max-w-md mx-auto">
+                  La curva azul muestra cómo se distribuye el riesgo en la comunidad. La línea roja indica tu probabilidad; cuanto más a la derecha esté, mayor es tu riesgo comparado con los demás.
+                </p>
+                </div>
+                {results.conflictRisk?.Grafica && (
+                  <img
+                    src={results.conflictRisk.Grafica}
+                    alt="Gráfica riesgo de conflictos"
+                    className="w-full h-80 object-contain rounded-lg"
+                  />
+                )}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-600">
+                Servicio no disponible
+              </div>
+            )}
+            {/* Mensaje explicativo */}
+            {results.conflictRisk?.RiesgoAlto ? (
+              <div className="text-yellow-300 text-sm max-w-md mx-auto space-y-2">
+                <p>Tu nivel de riesgo de conflictos es alto. Para reducirlo, prueba lo siguiente:</p>
+                <ul className="list-disc list-inside text-yellow-200 text-left">
+                  <li>Establece límites de tiempo al usar redes sociales.</li>
+                  <li>Evita responder impulsivamente; tómate unos minutos antes de contestar.</li>
+                  <li>Practica la comunicación asertiva y escucha activa.</li>
+                  <li>Programa descansos regulares lejos de la pantalla.</li>
+                </ul>
+              </div>
+            ) : (
+              <p className="text-gray-400 text-sm max-w-md mx-auto">Mantienes un riesgo bajo de conflictos. Continúa gestionando tu tiempo en redes y tu comunicación de forma saludable.</p>
+            )}
+          </div>
+
+          {/* Tiempo de Pantalla Recomendado Section */}
+          <div className="bg-gray-800/60 backdrop-blur-sm rounded-xl shadow-xl p-6 border border-gray-700/50">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-gray-100 flex items-center">
+                <span className="w-3 h-3 bg-green-500 rounded-full mr-2"></span>
+                Tiempo de Pantalla Recomendado
+              </h2>
+              <span className="px-2 py-1 text-xs bg-gray-700 rounded-full text-gray-300">
+                Consejo
+              </span>
+            </div>
+
+            {results.screenTime ? (
+              <div className="space-y-6 text-center">
+                <div className="text-5xl font-bold text-green-400">
+                  {results.screenTime?.RecommendedHours} h
+                </div>
+                <div className="text-gray-400">Horas recomendadas al día</div>
+                {results.screenTime?.Grafica && (
+                  <img
+                    src={results.screenTime.Grafica}
+                    alt="Gráfica tiempo de pantalla"
+                    className="w-full h-80 object-contain rounded-lg"
+                  />
+                )}
+                {/* Mensaje explicativo */}
+                <p className="text-gray-400 text-sm max-w-md mx-auto">
+                  Esta cifra indica las horas de uso diarias recomendadas para tu perfil. No es un límite máximo estricto, pero superarla con frecuencia puede aumentar el riesgo de efectos negativos.
+                </p>
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-600">
+                Servicio no disponible
+              </div>
+            )}
+          </div>
+
+          {/* Eficiencia de Estudio Section */}
+          <div className="bg-gray-800/60 backdrop-blur-sm rounded-xl shadow-xl p-6 border border-gray-700/50">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-gray-100 flex items-center">
+                <span className="w-3 h-3 bg-purple-400 rounded-full mr-2"></span>
+                Eficiencia de Estudio
+              </h2>
+              <span className="px-2 py-1 text-xs bg-gray-700 rounded-full text-gray-300">
+                Académico
+              </span>
+            </div>
+
+            {results.studyEfficiency ? (
+              <div className="space-y-6 text-center">
+                <div className="text-5xl font-bold text-purple-400">
+                  {results.studyEfficiency?.StudyEfficiencyScore}%
+                </div>
+                {results.studyEfficiency?.Grafica && (
+                  <img
+                    src={results.studyEfficiency.Grafica}
+                    alt="Gráfica eficiencia de estudio"
+                    className="w-full h-80 object-contain rounded-lg"
+                  />
+                )}
+                <p className="text-gray-400 text-sm max-w-md mx-auto">
+                  {results.studyEfficiency?.StudyEfficiencyScore >= 75
+                    ? 'Buen nivel de eficiencia. Continúa organizando tu tiempo y descansando adecuadamente.'
+                    : 'Podrías mejorar tu eficiencia de estudio. Limita distracciones digitales y planifica sesiones de estudio con pausas.'}
+                </p>
               </div>
             ) : (
               <div className="text-center py-8 text-gray-600">
