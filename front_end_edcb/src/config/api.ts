@@ -9,7 +9,14 @@ export const API_CONFIG = {
     ADICCION: '/api/grafica-adiccion',
     RENDIMIENTO: '/api/prediccion-rendimiento',
     SALUD_MENTAL: '/api/grafica-salud-mental',
-    
+    // Nuevos endpoints de predicción
+    SLEEP_QUALITY: '/api/grafica-sleep-quality',
+    HIGH_ADDICTION: '/api/grafica-high-addiction',
+    CONFLICT_RISK: '/api/grafica-conflict-risk',
+    RECOMMENDED_SCREEN_TIME: '/api/grafica-recommended-screen-time',
+    SOCIAL_WELLBEING: '/api/grafica-social-wellbeing',
+    STUDY_EFFICIENCY: '/api/grafica-study-efficiency',
+     
     // Endpoint del formulario
     FORM_DATA: '/api/form-data',
   }

@@ -78,13 +78,35 @@ export default function EncuestaRedesSociales() {
       // Guardar en localStorage
       //localStorage.setItem('formSubmitted', 'true');
       setSubmitted(true);
-      
+
+      const relacionMap: { [key: string]: number } = {
+        'Soltero': 1,
+        'En una relación': 2,
+        'Es complicado': 3,
+      };
+
+      const plataformaMap: { [key: string]: number } = {
+        'Facebook': 1,
+        'Instagram': 2,
+        'Twitter': 3,
+        'TikTok': 4,
+        'YouTube': 5,
+        'LinkedIn': 6,
+        'Snapchat': 7,
+        'WhatsApp': 8,
+        'Otra': 9,
+      };
 
       // Redirigir a la página de resultados con los parámetros necesarios
       const params = new URLSearchParams({
-        horasUso: data.horasRedesSociales.toString(),
-        horasSueno: data.horasSueno.toString(),
-        relacionActual: data.relacionActual.toString(),
+        Edad: data.edad.toString(),
+        HorasUso: data.horasRedesSociales.toString(),
+        HorasSueno: data.horasSueno.toString(),
+        RelacionInt: relacionMap[data.relacionActual].toString(),
+        EstadoEmocional: "1",
+        UsoRedesSociales: "2",
+        Plataforma: plataformaMap[data.redSocialFavorita].toString(),
+        AfectacionDesempeno: "1",
       });
       
       console.log('Parámetros de URL:', params.toString());
