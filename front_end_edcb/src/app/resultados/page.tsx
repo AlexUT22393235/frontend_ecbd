@@ -4,6 +4,47 @@ import { useSearchParams } from 'next/navigation';
 import axios from 'axios';
 import { buildApiUrl, API_CONFIG } from '../../config/api';
 
+// Componente reutilizable para bloques de detalles técnicos
+const TechnicalDetails = ({ metadata, interpretacion }: { metadata: any; interpretacion?: Record<string, string> }) => {
+  if (!metadata) return null;
+  return (
+    <div className="mt-6 bg-gray-900/30 p-4 rounded-lg border border-gray-700/30 text-left">
+      <div className="flex items-center justify-between mb-3">
+        <h4 className="text-gray-300 font-medium flex items-center">
+          <svg className="w-5 h-5 text-cyan-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Detalles Técnicos
+        </h4>
+        <span className="text-xs px-2 py-1 bg-gray-800 rounded-full text-cyan-400">
+          {metadata.algoritmo}
+        </span>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <h5 className="text-sm font-medium text-gray-400">Cómo funciona</h5>
+          <p className="text-xs text-gray-500">{metadata.explicacion_modelo?.que_es}</p>
+          <p className="text-xs text-gray-500">{metadata.explicacion_modelo?.como_funciona}</p>
+          <p className="text-xs text-gray-500">{metadata.explicacion_modelo?.para_que_sirve}</p>
+        </div>
+        <div className="space-y-2">
+          <h5 className="text-sm font-medium text-gray-400">Interpretación</h5>
+          <ul className="text-xs text-gray-500 space-y-1">
+            {interpretacion && Object.values(interpretacion).map((txt, idx) => (
+              <li key={idx} className="flex items-start">
+                <span className="text-cyan-400 mr-1">•</span><span>{txt}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+      <div className="mt-3 pt-3 border-t border-gray-700/30">
+        <p className="text-xs text-gray-600"><span className="font-medium">Variables analizadas:</span> {metadata.variables?.join(', ')}</p>
+      </div>
+    </div>
+  );
+};
+
 interface PredictionResult {
   prediccion_porcentaje?: number;
   nivel_adiccion?: string;
@@ -129,7 +170,7 @@ export default function ResultadosPage() {
           sleepQuality: sleepRes.status === 'fulfilled' ? sleepRes.value.data : null,
           conflictRisk: conflictRes.status === 'fulfilled' ? conflictRes.value.data : null,
           screenTime: screenTimeRes.status === 'fulfilled' ? screenTimeRes.value.data : null,
-           //socialWellbeing: socialWellRes.status === 'fulfilled' ? socialWellRes.value.data : null,
+          socialWellbeing: null,
           studyEfficiency: studyEffRes.status === 'fulfilled' ? studyEffRes.value.data : null,
           highAddiction: null,
         };          
@@ -413,6 +454,11 @@ export default function ResultadosPage() {
                     ? 'Tu calidad de sueño es adecuada. Mantén horarios regulares y un ambiente silencioso para dormir.'
                     : 'La calidad de tu sueño podría mejorar. Intenta limitar pantallas antes de dormir y establecer rutinas relajantes.'}
                 </p>
+
+                {/* Detalles Técnicos */}
+                {results.sleepQuality?.modelo_metadata && (
+                  <TechnicalDetails metadata={results.sleepQuality.modelo_metadata} interpretacion={results.sleepQuality.interpretacion_graficas} />
+                )}
               </div>
             ) : (
               <div className="text-center py-8 text-gray-600">
@@ -444,10 +490,7 @@ export default function ResultadosPage() {
                 </div>
                 <div className="text-lg font-medium text-gray-300">
                   {((results.conflictRisk?.Probabilidad || 0) * 100).toFixed(1)}% probabilidad
-                                  {/* Explicación de la CDF */}
-                <p className="text-gray-400 text-sm max-w-md mx-auto">
-                  La curva azul muestra cómo se distribuye el riesgo en la comunidad. La línea roja indica tu probabilidad; cuanto más a la derecha esté, mayor es tu riesgo comparado con los demás.
-                </p>
+
                 </div>
                 {results.conflictRisk?.Grafica && (
                   <img
@@ -456,25 +499,15 @@ export default function ResultadosPage() {
                     className="w-full h-80 object-contain rounded-lg"
                   />
                 )}
+                {/* Detalles Técnicos */}
+                {results.conflictRisk?.modelo_metadata && (
+                  <TechnicalDetails metadata={results.conflictRisk.modelo_metadata} interpretacion={results.conflictRisk.interpretacion_graficas} />
+                )}
               </div>
             ) : (
               <div className="text-center py-8 text-gray-600">
                 Servicio no disponible
               </div>
-            )}
-            {/* Mensaje explicativo */}
-            {results.conflictRisk?.RiesgoAlto ? (
-              <div className="text-yellow-300 text-sm max-w-md mx-auto space-y-2">
-                <p>Tu nivel de riesgo de conflictos es alto. Para reducirlo, prueba lo siguiente:</p>
-                <ul className="list-disc list-inside text-yellow-200 text-left">
-                  <li>Establece límites de tiempo al usar redes sociales.</li>
-                  <li>Evita responder impulsivamente; tómate unos minutos antes de contestar.</li>
-                  <li>Practica la comunicación asertiva y escucha activa.</li>
-                  <li>Programa descansos regulares lejos de la pantalla.</li>
-                </ul>
-              </div>
-            ) : (
-              <p className="text-gray-400 text-sm max-w-md mx-auto">Mantienes un riesgo bajo de conflictos. Continúa gestionando tu tiempo en redes y tu comunicación de forma saludable.</p>
             )}
           </div>
 
@@ -503,10 +536,10 @@ export default function ResultadosPage() {
                     className="w-full h-80 object-contain rounded-lg"
                   />
                 )}
-                {/* Mensaje explicativo */}
-                <p className="text-gray-400 text-sm max-w-md mx-auto">
-                  Esta cifra indica las horas de uso diarias recomendadas para tu perfil. No es un límite máximo estricto, pero superarla con frecuencia puede aumentar el riesgo de efectos negativos.
-                </p>
+                {/* Detalles Técnicos */}
+                {results.screenTime?.modelo_metadata && (
+                  <TechnicalDetails metadata={results.screenTime.modelo_metadata} interpretacion={results.screenTime.interpretacion_graficas} />
+                )}
               </div>
             ) : (
               <div className="text-center py-8 text-gray-600">
@@ -544,6 +577,11 @@ export default function ResultadosPage() {
                     ? 'Buen nivel de eficiencia. Continúa organizando tu tiempo y descansando adecuadamente.'
                     : 'Podrías mejorar tu eficiencia de estudio. Limita distracciones digitales y planifica sesiones de estudio con pausas.'}
                 </p>
+
+                {/* Detalles Técnicos */}
+                {results.studyEfficiency?.modelo_metadata && (
+                  <TechnicalDetails metadata={results.studyEfficiency.modelo_metadata} interpretacion={results.studyEfficiency.interpretacion_graficas} />
+                )}
               </div>
             ) : (
               <div className="text-center py-8 text-gray-600">
@@ -559,7 +597,7 @@ export default function ResultadosPage() {
             <svg className="w-6 h-6 text-cyan-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
-            Recomendaciones Personalizadas
+            Recomendaciones
           </h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
