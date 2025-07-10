@@ -18,6 +18,20 @@ interface PredictionResult {
     horas_sueño_nocturno?: number;
     estatus_relacion?: number;
   };
+  // Nuevas propiedades
+  modelo_metadata?: {
+    algoritmo?: string;
+    variables?: string[];
+    explicacion_modelo?: {
+      que_es?: string;
+      como_funciona?: string;
+      para_que_sirve?: string;
+    };
+  };
+  interpretacion_graficas?: {
+    grafica_1?: string;
+    grafica_2?: string;
+  };
 }
 
 export default function ResultadosPage() {
@@ -150,60 +164,114 @@ export default function ResultadosPage() {
             </div>
             
             {results.adiccion ? (
-              <div className="space-y-6">
-                <div className="flex flex-col md:flex-row md:items-center gap-6">
-                  <div className="text-center md:text-left">
-                    <div className="text-5xl font-bold text-cyan-400 mb-2">
-                      {results.adiccion.prediccion_porcentaje?.toFixed(1)}%
-                    </div>
-                    <div className="text-lg font-medium text-gray-300 capitalize">
-                      {results.adiccion.nivel_adiccion?.toLowerCase()}
-                    </div>
-                    <div className="w-full bg-gray-700 rounded-full h-2.5 mt-4 max-w-xs mx-auto md:mx-0">
-                      <div 
-                        className="bg-gradient-to-r from-cyan-500 to-blue-600 h-2.5 rounded-full" 
-                        style={{ width: `${results.adiccion.prediccion_porcentaje}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex-1">
-                    <p className="text-gray-400">{results.adiccion.mensaje}</p>
-                    {results.adiccion.valores_ingresados && (
-                      <div className="grid grid-cols-2 gap-2 text-xs mt-4">
-                        <div className="bg-gray-900/50 p-2 rounded-lg">
-                          <div className="text-gray-500">Horas de uso</div>
-                          <div className="text-gray-300 font-medium">
-                            {results.adiccion.valores_ingresados.horas_diarias_uso}h
-                          </div>
-                        </div>
-                        <div className="bg-gray-900/50 p-2 rounded-lg">
-                          <div className="text-gray-500">Horas de sueño</div>
-                          <div className="text-gray-300 font-medium">
-                            {results.adiccion.valores_ingresados.horas_sueño_nocturno}h
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                
-                {getGraphBase64(results.adiccion) && (
-                  <div className="mt-6">
-                    <h3 className="text-gray-300 font-medium mb-3">Visualización de datos</h3>
-                    <img 
-                      src={getGraphBase64(results.adiccion)!}
-                      alt="Gráfica de adicción"
-                      className="w-full h-80 object-contain rounded-lg"
-                    />
-                  </div>
-                )}
+  <div className="space-y-6">
+    {/* Sección de Predicción (EXISTENTE - NO MODIFICAR) */}
+    <div className="flex flex-col md:flex-row md:items-center gap-6">
+      <div className="text-center md:text-left">
+        <div className="text-5xl font-bold text-cyan-400 mb-2">
+          {results.adiccion.prediccion_porcentaje?.toFixed(1)}%
+        </div>
+        <div className="text-lg font-medium text-gray-300 capitalize">
+          {results.adiccion.nivel_adiccion?.toLowerCase()}
+        </div>
+        <div className="w-full bg-gray-700 rounded-full h-2.5 mt-4 max-w-xs mx-auto md:mx-0">
+          <div 
+            className="bg-gradient-to-r from-cyan-500 to-blue-600 h-2.5 rounded-full" 
+            style={{ width: `${results.adiccion.prediccion_porcentaje}%` }}
+          ></div>
+        </div>
+      </div>
+      
+      <div className="flex-1">
+        {/* Mensaje (EXISTENTE - NO MODIFICAR) */}
+        <p className="text-gray-400">{results.adiccion.mensaje}</p>
+        
+        {/* Valores Ingresados (EXISTENTE - NO MODIFICAR) */}
+        {results.adiccion.valores_ingresados && (
+          <div className="grid grid-cols-2 gap-2 text-xs mt-4">
+            <div className="bg-gray-900/50 p-2 rounded-lg">
+              <div className="text-gray-500">Horas de uso</div>
+              <div className="text-gray-300 font-medium">
+                {results.adiccion.valores_ingresados.horas_diarias_uso}h
               </div>
-            ) : (
-              <div className="text-center py-8 text-gray-600">
-                Servicio no disponible
+            </div>
+            <div className="bg-gray-900/50 p-2 rounded-lg">
+              <div className="text-gray-500">Horas de sueño</div>
+              <div className="text-gray-300 font-medium">
+                {results.adiccion.valores_ingresados.horas_sueño_nocturno}h
               </div>
-            )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+    
+    {/* Gráfica (EXISTENTE - NO MODIFICAR) */}
+    {getGraphBase64(results.adiccion) && (
+      <div className="mt-6">
+        <h3 className="text-gray-300 font-medium mb-3">Visualización de datos</h3>
+        <img 
+          src={getGraphBase64(results.adiccion)!}
+          alt="Gráfica de adicción"
+          className="w-full h-80 object-contain rounded-lg"
+        />
+        
+        {/* NUEVA SECCIÓN - Información del Modelo (SE AÑADE SIN MODIFICAR LO EXISTENTE) */}
+        {results.adiccion.modelo_metadata && (
+          <div className="mt-6 bg-gray-900/30 p-4 rounded-lg border border-gray-700/30">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-gray-300 font-medium flex items-center">
+                <svg className="w-5 h-5 text-cyan-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Detalles Técnicos
+              </h4>
+              <span className="text-xs px-2 py-1 bg-gray-800 rounded-full text-cyan-400">
+                {results.adiccion.modelo_metadata.algoritmo}
+              </span>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <h5 className="text-sm font-medium text-gray-400">Cómo funciona</h5>
+                <p className="text-xs text-gray-500">
+                  {results.adiccion.modelo_metadata.explicacion_modelo?.que_es}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {results.adiccion.modelo_metadata.explicacion_modelo?.como_funciona}
+                </p>
+              </div>
+              
+              <div className="space-y-2">
+                <h5 className="text-sm font-medium text-gray-400">Interpretación</h5>
+                <ul className="text-xs text-gray-500 space-y-1">
+                  <li className="flex items-start">
+                    <span className="text-cyan-400 mr-1">•</span>
+                    <span>{results.adiccion.interpretacion_graficas?.grafica_1}</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-cyan-400 mr-1">•</span>
+                    <span>{results.adiccion.interpretacion_graficas?.grafica_2}</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            
+            <div className="mt-3 pt-3 border-t border-gray-700/30">
+              <p className="text-xs text-gray-600">
+                <span className="font-medium">Variables analizadas:</span> {results.adiccion.modelo_metadata.variables?.join(", ")}
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    )}
+  </div>
+) : (
+  <div className="text-center py-8 text-gray-600">
+    Servicio no disponible
+  </div>
+)}
           </div>
 
           {/* Rendimiento Section */}
